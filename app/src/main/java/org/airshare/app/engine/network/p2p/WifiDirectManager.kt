@@ -9,6 +9,7 @@ import android.net.NetworkInfo
 import android.net.wifi.p2p.*
 import android.os.Build
 import android.os.Looper
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,10 +33,14 @@ class WifiDirectManager(private val context: Context) {
     val isP2pEnabled: StateFlow<Boolean> = _isP2pEnabled.asStateFlow()
 
     init {
-        p2pManager?.let { manager ->
-            channel = manager.initialize(context, Looper.getMainLooper()) {
-                // Channel disconnected
+        try {
+            p2pManager?.let { manager ->
+                channel = manager.initialize(context, Looper.getMainLooper()) {
+                    // Channel disconnected
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -48,7 +53,21 @@ class WifiDirectManager(private val context: Context) {
             addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
             addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
         }
-        context.registerReceiver(receiver, intentFilter)
+        try {
+            ContextCompat.registerReceiver(
+                context,
+                receiver,
+                intentFilter,
+                ContextCompat.RECEIVER_EXPORTED
+            )
+        } catch (e: Exception) {
+            try {
+                @Suppress("DEPRECATION")
+                context.registerReceiver(receiver, intentFilter)
+            } catch (e2: Exception) {
+                e2.printStackTrace()
+            }
+        }
     }
 
     fun unregister() {
@@ -61,29 +80,45 @@ class WifiDirectManager(private val context: Context) {
     @SuppressLint("MissingPermission")
     fun discoverPeers(onSuccess: (() -> Unit)? = null, onFailure: ((Int) -> Unit)? = null) {
         val ch = channel ?: return
-        p2pManager?.discoverPeers(ch, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                onSuccess?.invoke()
-            }
+        try {
+            p2pManager?.discoverPeers(ch, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    onSuccess?.invoke()
+                }
 
-            override fun onFailure(reason: Int) {
-                onFailure?.invoke(reason)
-            }
-        })
+                override fun onFailure(reason: Int) {
+                    onFailure?.invoke(reason)
+                }
+            })
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            onFailure?.invoke(-1)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onFailure?.invoke(-1)
+        }
     }
 
     @SuppressLint("MissingPermission")
     fun createGroup(onSuccess: (() -> Unit)? = null, onFailure: ((Int) -> Unit)? = null) {
         val ch = channel ?: return
-        p2pManager?.createGroup(ch, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                onSuccess?.invoke()
-            }
+        try {
+            p2pManager?.createGroup(ch, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    onSuccess?.invoke()
+                }
 
-            override fun onFailure(reason: Int) {
-                onFailure?.invoke(reason)
-            }
-        })
+                override fun onFailure(reason: Int) {
+                    onFailure?.invoke(reason)
+                }
+            })
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            onFailure?.invoke(-1)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onFailure?.invoke(-1)
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -92,64 +127,94 @@ class WifiDirectManager(private val context: Context) {
         val config = WifiP2pConfig().apply {
             this.deviceAddress = deviceAddress
         }
-        p2pManager?.connect(ch, config, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                onSuccess?.invoke()
-            }
+        try {
+            p2pManager?.connect(ch, config, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    onSuccess?.invoke()
+                }
 
-            override fun onFailure(reason: Int) {
-                onFailure?.invoke(reason)
-            }
-        })
+                override fun onFailure(reason: Int) {
+                    onFailure?.invoke(reason)
+                }
+            })
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            onFailure?.invoke(-1)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onFailure?.invoke(-1)
+        }
     }
 
     fun removeGroup(onComplete: (() -> Unit)? = null) {
         val ch = channel ?: return
-        p2pManager?.removeGroup(ch, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                _connectionInfo.value = null
-                onComplete?.invoke()
-            }
+        try {
+            p2pManager?.removeGroup(ch, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    _connectionInfo.value = null
+                    onComplete?.invoke()
+                }
 
-            override fun onFailure(reason: Int) {
-                onComplete?.invoke()
-            }
-        })
+                override fun onFailure(reason: Int) {
+                    onComplete?.invoke()
+                }
+            })
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onComplete?.invoke()
+        }
     }
 
     inner class WifiDirectReceiver : BroadcastReceiver() {
         @SuppressLint("MissingPermission")
         override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
-                    val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
-                    _isP2pEnabled.value = (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED)
-                }
-                WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
-                    val ch = channel ?: return
-                    p2pManager?.requestPeers(ch) { peersList ->
-                        val mapped = peersList.deviceList.map { device ->
-                            DevicePeer(
-                                id = device.deviceAddress,
-                                name = device.deviceName.ifBlank { "Unknown Device" },
-                                ipAddress = device.deviceAddress,
-                                state = PeerConnectionState.DISCOVERED
-                            )
-                        }
-                        _discoveredPeers.value = mapped
+            try {
+                when (intent.action) {
+                    WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
+                        val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
+                        _isP2pEnabled.value = (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED)
                     }
-                }
-                WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
-                    val networkInfo = intent.getParcelableExtra<NetworkInfo>(WifiP2pManager.EXTRA_NETWORK_INFO)
-                    if (networkInfo?.isConnected == true) {
+                    WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
                         val ch = channel ?: return
-                        p2pManager?.requestConnectionInfo(ch) { info ->
-                            _connectionInfo.value = info
+                        try {
+                            p2pManager?.requestPeers(ch) { peersList ->
+                                val mapped = peersList.deviceList.map { device ->
+                                    DevicePeer(
+                                        id = device.deviceAddress,
+                                        name = device.deviceName.ifBlank { "Nearby Peer" },
+                                        ipAddress = device.deviceAddress,
+                                        state = PeerConnectionState.DISCOVERED
+                                    )
+                                }
+                                _discoveredPeers.value = mapped
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
-                    } else {
-                        _connectionInfo.value = null
+                    }
+                    WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
+                        val networkInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO, NetworkInfo::class.java)
+                        } else {
+                            @Suppress("DEPRECATION")
+                            intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO)
+                        }
+                        if (networkInfo?.isConnected == true) {
+                            val ch = channel ?: return
+                            try {
+                                p2pManager?.requestConnectionInfo(ch) { info ->
+                                    _connectionInfo.value = info
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        } else {
+                            _connectionInfo.value = null
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

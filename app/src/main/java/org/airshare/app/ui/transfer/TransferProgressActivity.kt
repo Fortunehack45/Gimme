@@ -165,33 +165,38 @@ class TransferProgressActivity : AppCompatActivity() {
 
     private fun startSenderSession() {
         val deviceName = AirShareApplication.instance.settingsRepository.deviceName
-        server = AirShareServer(
-            context = this,
-            hostDeviceName = deviceName,
-            port = hostPort
-        ).apply {
-            setFiles(filesList)
-            try {
+        try {
+            server = AirShareServer(
+                context = this,
+                hostDeviceName = deviceName,
+                port = hostPort
+            ).apply {
+                setFiles(filesList)
                 start()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Server notice: ${e.message}", Toast.LENGTH_SHORT).show()
         }
 
         binding.tvTotalFilesSummary.text = "0 / ${filesList.size} files transferred"
 
         lifecycleScope.launch {
-            server?.liveConnectedPeersFlow?.collectLatest { peers ->
-                if (peers.isNotEmpty()) {
-                    val peer = peers.first()
-                    binding.indicatorTotalProgress.progress = peer.progressPercent
-                    binding.tvTotalProgressPercent.text = "${peer.progressPercent}%"
-                    binding.tvTransferSpeed.text = "%.2f MB/s".format(peer.speedBytesPerSec / (1024.0 * 1024.0))
+            try {
+                server?.liveConnectedPeersFlow?.collectLatest { peers ->
+                    if (peers.isNotEmpty()) {
+                        val peer = peers.first()
+                        binding.indicatorTotalProgress.progress = peer.progressPercent
+                        binding.tvTotalProgressPercent.text = "${peer.progressPercent}%"
+                        binding.tvTransferSpeed.text = "%.2f MB/s".format(peer.speedBytesPerSec / (1024.0 * 1024.0))
 
-                    if (peer.progressPercent >= 100) {
-                        onTransferComplete()
+                        if (peer.progressPercent >= 100) {
+                            onTransferComplete()
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -204,61 +209,78 @@ class TransferProgressActivity : AppCompatActivity() {
         val targetDir = AirShareApplication.instance.settingsRepository.getDefaultDownloadDirectory()
 
         lifecycleScope.launch {
-            binding.tvTransferSpeed.text = "Connecting..."
-            val handshake = client?.performHandshake(hostIp, hostPort, pinCode)
-            if (handshake?.accepted != true) {
+            try {
+                binding.tvTransferSpeed.text = "Connecting..."
+                val handshake = client?.performHandshake(hostIp, hostPort, pinCode)
+                if (handshake?.accepted != true) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@TransferProgressActivity, "Connection: ${handshake?.message ?: "Host unreachable"}", Toast.LENGTH_LONG).show()
+                        binding.tvTransferSpeed.text = "Failed to connect"
+                        binding.btnCancelOrDone.text = "Close"
+                    }
+                    return@launch
+                }
+
+                val manifestFiles = client?.fetchManifest(hostIp, hostPort) ?: emptyList()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@TransferProgressActivity, "Connection rejected: ${handshake?.message}", Toast.LENGTH_LONG).show()
-                    finish()
+                    filesList.clear()
+                    filesList.addAll(manifestFiles)
+                    filesAdapter.notifyDataSetChanged()
+                    binding.tvTotalFilesSummary.text = "0 / ${filesList.size} files"
                 }
-                return@launch
-            }
 
-            val manifestFiles = client?.fetchManifest(hostIp, hostPort) ?: emptyList()
-            withContext(Dispatchers.Main) {
-                filesList.clear()
-                filesList.addAll(manifestFiles)
-                filesAdapter.notifyDataSetChanged()
-                binding.tvTotalFilesSummary.text = "0 / ${filesList.size} files"
-            }
+                if (manifestFiles.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        binding.tvTransferSpeed.text = "No files in session"
+                        binding.btnCancelOrDone.text = "Close"
+                    }
+                    return@launch
+                }
 
-            val success = client?.downloadFiles(
-                hostIp = hostIp,
-                port = hostPort,
-                files = filesList,
-                targetDirectory = targetDir,
-                onSessionProgress = { speedMBs, etaSec, totalProgress ->
-                    runOnUiThread {
-                        binding.indicatorTotalProgress.progress = totalProgress
-                        binding.tvTotalProgressPercent.text = "$totalProgress%"
-                        binding.tvTransferSpeed.text = "%.2f MB/s".format(speedMBs)
-                        binding.tvTransferEta.text = if (etaSec > 0) "ETA ~${etaSec}s" else "Almost done"
-                        filesAdapter.notifyDataSetChanged()
-                        TransferForegroundService.updateProgress(this@TransferProgressActivity, "AirShare Transfer", totalProgress, speedMBs)
+                val success = client?.downloadFiles(
+                    hostIp = hostIp,
+                    port = hostPort,
+                    files = filesList,
+                    targetDirectory = targetDir,
+                    onSessionProgress = { speedMBs, etaSec, totalProgress ->
+                        runOnUiThread {
+                            binding.indicatorTotalProgress.progress = totalProgress
+                            binding.tvTotalProgressPercent.text = "$totalProgress%"
+                            binding.tvTransferSpeed.text = "%.2f MB/s".format(speedMBs)
+                            binding.tvTransferEta.text = if (etaSec > 0) "ETA ~${etaSec}s" else "Almost done"
+                            filesAdapter.notifyDataSetChanged()
+                            TransferForegroundService.updateProgress(this@TransferProgressActivity, "AirShare Transfer", totalProgress, speedMBs)
+                        }
+                    },
+                    onFileFinished = { transferFile, file ->
+                        runOnUiThread {
+                            val completedCount = filesList.count { it.status == TransferStatus.COMPLETED }
+                            binding.tvTotalFilesSummary.text = "$completedCount / ${filesList.size} files transferred"
+                            filesAdapter.notifyDataSetChanged()
+                        }
+                        lifecycleScope.launch {
+                            AirShareApplication.instance.transferRepository.recordTransfer(
+                                sessionId = sessionId,
+                                file = transferFile.copy(localFilePath = file.absolutePath),
+                                isIncoming = true,
+                                peerName = targetPeer?.name ?: "Host Peer"
+                            )
+                        }
                     }
-                },
-                onFileFinished = { transferFile, file ->
-                    runOnUiThread {
-                        val completedCount = filesList.count { it.status == TransferStatus.COMPLETED }
-                        binding.tvTotalFilesSummary.text = "$completedCount / ${filesList.size} files transferred"
-                        filesAdapter.notifyDataSetChanged()
-                    }
-                    lifecycleScope.launch {
-                        AirShareApplication.instance.transferRepository.recordTransfer(
-                            sessionId = sessionId,
-                            file = transferFile.copy(localFilePath = file.absolutePath),
-                            isIncoming = true,
-                            peerName = targetPeer?.name ?: "Host Peer"
-                        )
+                )
+
+                withContext(Dispatchers.Main) {
+                    if (success == true) {
+                        onTransferComplete()
+                    } else {
+                        binding.tvTransferSpeed.text = "Interrupted"
                     }
                 }
-            )
-
-            withContext(Dispatchers.Main) {
-                if (success == true) {
-                    onTransferComplete()
-                } else {
-                    binding.tvTransferSpeed.text = "Interrupted"
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    binding.tvTransferSpeed.text = "Transfer stopped"
+                    Toast.makeText(this@TransferProgressActivity, "Transfer error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
