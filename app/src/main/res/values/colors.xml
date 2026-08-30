@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default Brand Primary (Apple Crimson Red) -->
+    <color name="brand_primary">#FF3B30</color> <!-- Apple Red Light -->
+    <color name="brand_primary_dark">#FF453A</color> <!-- Apple Red Dark -->
+    <color name="brand_primary_variant">#E11D48</color> <!-- Crimson 600 -->
+    <color name="brand_primary_subtle">#1AFF3B30</color>
+    <color name="brand_secondary">#FF6961</color>
+    <color name="brand_accent">#007AFF</color> <!-- Apple System Blue -->
+    <color name="brand_success">#34C759</color> <!-- Apple System Green -->
+    <color name="brand_warning">#FF9500</color> <!-- Apple System Orange -->
+    <color name="brand_danger">#FF3B30</color> <!-- Apple System Red -->
+
+    <!-- Theme Color Customization Presets -->
+    <color name="theme_preset_red">#FF3B30</color>
+    <color name="theme_preset_blue">#007AFF</color>
+    <color name="theme_preset_purple">#AF52DE</color>
+    <color name="theme_preset_green">#34C759</color>
+    <color name="theme_preset_orange">#FF9500</color>
+    <color name="theme_preset_gold">#FFCC00</color>
+    <color name="theme_preset_monochrome">#8E8E93</color>
+
+    <!-- Apple Dark Mode Palette (Pure OLED Black & Refined Grays) -->
+    <color name="bg_dark_main">#000000</color> <!-- True OLED Pitch Black -->
+    <color name="bg_dark_card">#1C1C1E</color> <!-- Apple System Gray 6 Dark -->
+    <color name="bg_dark_elevated">#2C2C2E</color> <!-- Apple System Gray 5 Dark -->
+    <color name="bg_dark_glass">#D91C1C1E</color> <!-- Frosted Dark Glass -->
+    <color name="border_dark">#38383A</color> <!-- Hairline Border Dark -->
+    <color name="border_dark_subtle">#262628</color>
+
+    <!-- Apple Light Mode Palette (Pure White & Subtle Grays) -->
+    <color name="bg_light_main">#F2F2F7</color> <!-- Apple System Gray 6 Light -->
+    <color name="bg_light_card">#FFFFFF</color> <!-- Pure Crisp White -->
+    <color name="bg_light_elevated">#E5E5EA</color> <!-- Apple System Gray 4 Light -->
+    <color name="bg_light_glass">#E6FFFFFF</color> <!-- Frosted Light Glass -->
+    <color name="border_light">#E5E5EA</color> <!-- Hairline Border Light -->
+    <color name="border_light_subtle">#F2F2F7</color>
+
+    <!-- Apple Minimalist Text Colors -->
+    <color name="text_dark_primary">#FFFFFF</color>
+    <color name="text_dark_secondary">#8E8E93</color> <!-- Apple Gray -->
+    <color name="text_dark_muted">#636366</color>
+
+    <color name="text_light_primary">#000000</color>
+    <color name="text_light_secondary">#8E8E93</color> <!-- Apple Gray -->
+    <color name="text_light_muted">#AEAEB2</color>
+
+    <!-- Category Apple Colors -->
+    <color name="cat_apps">#AF52DE</color> <!-- Purple -->
+    <color name="cat_photos">#FF2D55</color> <!-- Pink -->
+    <color name="cat_videos">#007AFF</color> <!-- Blue -->
+    <color name="cat_music">#34C759</color> <!-- Green -->
+    <color name="cat_docs">#FF9500</color> <!-- Orange -->
+    <color name="cat_files">#8E8E93</color> <!-- Gray -->
+</resources>

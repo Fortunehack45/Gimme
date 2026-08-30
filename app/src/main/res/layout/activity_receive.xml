@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:padding="20dp">
+
+    <!-- Top Bar -->
+    <ImageView
+        android:id="@+id/btnReceiveBack"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?selectableItemBackgroundBorderless"
+        android:padding="6dp"
+        android:src="@drawable/ic_close"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurface" />
+
+    <TextView
+        android:id="@+id/tvReceiveHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:text="Receive Files"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="20sp"
+        android:letterSpacing="-0.02"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/btnReceiveBack"
+        app:layout_constraintStart_toEndOf="@id/btnReceiveBack"
+        app:layout_constraintTop_toTopOf="@id/btnReceiveBack" />
+
+    <!-- Apple QR Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardQrContainer"
+        style="@style/Card.AirShare"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        app:cardCornerRadius="28dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnReceiveBack">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="28dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutline">
+
+                <ImageView
+                    android:id="@+id/ivReceiverQrCode"
+                    android:layout_width="220dp"
+                    android:layout_height="220dp"
+                    android:background="#FFFFFF"
+                    android:padding="10dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tvReceiverDeviceName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="My Device"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="20sp"
+                android:letterSpacing="-0.02"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvReceiverIpPort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Waiting on 192.168.1.55:8080"
+                android:textColor="@color/text_dark_secondary"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Radar Pulse Status Info -->
+    <LinearLayout
+        android:id="@+id/layoutWaitingStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_pill_badge"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardQrContainer">
+
+        <ProgressBar
+            android:id="@+id/pbReceiveRadar"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/brand_primary" />
+
+        <TextView
+            android:id="@+id/tvWaitingPrompt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:text="Ask the sender to scan this QR code or select this device."
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnToggleHotspotFallback"
+        style="@style/Button.AirShare.Secondary"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginBottom="16dp"
+        android:text="📶 Switch to Direct Hotspot Mode"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

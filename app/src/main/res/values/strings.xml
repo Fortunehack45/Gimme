@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AirShare</string>
+    <string name="tagline">Zero ads. Zero trackers. Direct peer transfer.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_history">History</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home Actions -->
+    <string name="action_send">Send</string>
+    <string name="action_send_desc">Select files &amp; share to nearby devices</string>
+    <string name="action_receive">Receive</string>
+    <string name="action_receive_desc">Wait for sender &amp; accept files</string>
+    <string name="action_group">Create Group</string>
+    <string name="action_group_desc">Broadcast files to multiple receivers</string>
+    <string name="action_web">Connect to PC / Web</string>
+    <string name="action_web_desc">Zero-install browser transfer on any device</string>
+    <string name="action_clone">Phone Clone</string>
+    <string name="action_clone_desc">Migrate data between old and new devices</string>
+
+    <!-- Categories -->
+    <string name="cat_apps_title">Apps</string>
+    <string name="cat_photos_title">Photos</string>
+    <string name="cat_videos_title">Videos</string>
+    <string name="cat_music_title">Music</string>
+    <string name="cat_docs_title">Documents</string>
+    <string name="cat_files_title">Files</string>
+
+    <!-- Transfer Details -->
+    <string name="transfer_speed">%1$.2f MB/s</string>
+    <string name="transfer_eta">ETA %1$s</string>
+    <string name="transfer_progress">%1$d / %2$d files</string>
+    <string name="transfer_completed">Transfer Completed</string>
+    <string name="transfer_paused">Transfer Paused</string>
+    <string name="transfer_failed">Transfer Failed</string>
+    <string name="transfer_canceled">Transfer Canceled</string>
+    <string name="btn_pause">Pause</string>
+    <string name="btn_resume">Resume</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_done">Done</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_1_title">Fast, Direct &amp; Private</string>
+    <string name="onboarding_1_desc">Transfer files between devices over local Wi-Fi. No internet, no cloud, no data charges, zero trackers.</string>
+    <string name="onboarding_2_title">Multi-Device Broadcast</string>
+    <string name="onboarding_2_desc">Send to multiple friends at once with high speed. End-to-end encrypted on the local network.</string>
+    <string name="onboarding_3_title">Transparent Permissions</string>
+    <string name="onboarding_3_desc">We only request permissions required for local Wi-Fi peer discovery and selecting your files.</string>
+    <string name="btn_next">Next</string>
+    <string name="btn_get_started">Get Started</string>
+    <string name="btn_grant_permissions">Grant &amp; Continue</string>
+
+    <!-- Permissions Explanations -->
+    <string name="perm_nearby_title">Nearby Devices / WiFi Direct</string>
+    <string name="perm_nearby_desc">Required by Android to discover and connect with nearby devices directly over WiFi.</string>
+    <string name="perm_location_title">Location (OS WiFi Scan)</string>
+    <string name="perm_location_desc">Android requires location permission solely to scan local WiFi networks. We never track your location.</string>
+    <string name="perm_storage_title">Media &amp; Files Access</string>
+    <string name="perm_storage_desc">Required to let you select photos, videos, music, and documents to send.</string>
+
+    <!-- Group Broadcast -->
+    <string name="group_title">Multi-Device Group</string>
+    <string name="group_host_title">Host Session</string>
+    <string name="group_join_title">Join Session</string>
+    <string name="group_members_count">%1$d devices joined</string>
+    <string name="group_start_broadcast">Start Broadcast</string>
+
+    <!-- Web Connect -->
+    <string name="web_connect_title">PC / Web Connect</string>
+    <string name="web_connect_sub">Connect PC, Mac, Linux or iOS on the same Wi-Fi</string>
+    <string name="web_url_prompt">Open this address in any browser:</string>
+    <string name="web_connected_clients">Connected browsers: %1$d</string>
+
+    <!-- Phone Clone -->
+    <string name="clone_title">Phone Clone</string>
+    <string name="clone_role_old">This is my OLD phone (Sender)</string>
+    <string name="clone_role_new">This is my NEW phone (Receiver)</string>
+    <string name="clone_select_categories">Select categories to transfer</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_device_name">Device Name</string>
+    <string name="settings_encryption_title">End-to-End Encryption</string>
+    <string name="settings_encryption_desc">AES-256-GCM session key handshake (Always Active)</string>
+    <string name="settings_pin_title">Require PIN Confirmation</string>
+    <string name="settings_pin_desc">Prompt for 4-digit PIN before accepting incoming files</string>
+    <string name="settings_save_path">Save Location</string>
+    <string name="settings_about_privacy">Privacy &amp; Permissions</string>
+    <string name="settings_version">AirShare v1.0.0</string>
+</resources>

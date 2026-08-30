@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Card.AirShare"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="20dp"
+    android:layout_marginVertical="5dp"
+    app:cardCornerRadius="20dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="14dp">
+
+        <FrameLayout
+            android:id="@+id/iconFrame"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_pill_badge"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivCategoryIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_category_file" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvFileName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:text="MyPhoto.jpg"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/tvDirectionBadge"
+            app:layout_constraintStart_toEndOf="@id/iconFrame"
+            app:layout_constraintTop_toTopOf="@id/iconFrame" />
+
+        <TextView
+            android:id="@+id/tvMetaDetails"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="2dp"
+            android:text="2.4 MB • Pixel 8 • 2m ago"
+            android:textColor="@color/text_dark_secondary"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@id/iconFrame"
+            app:layout_constraintEnd_toStartOf="@id/btnActionResend"
+            app:layout_constraintStart_toEndOf="@id/iconFrame"
+            app:layout_constraintTop_toBottomOf="@id/tvFileName" />
+
+        <TextView
+            android:id="@+id/tvDirectionBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill_badge"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="RECEIVED"
+            android:textColor="@color/brand_primary"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvFileName" />
+
+        <ImageView
+            android:id="@+id/btnActionResend"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:padding="6dp"
+            android:src="@drawable/ic_send"
+            app:layout_constraintBottom_toBottomOf="@id/iconFrame"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:tint="@color/brand_primary" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

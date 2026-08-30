@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:layout_marginEnd="12dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <View
+        android:id="@+id/viewColorCircle"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_radar_ring" />
+
+    <ImageView
+        android:id="@+id/ivCheckmark"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_check"
+        android:visibility="gone"
+        android:tint="#FFFFFF" />
+
+</FrameLayout>

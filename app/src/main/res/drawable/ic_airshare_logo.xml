@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- Apple Minimalist AirShare Wing / Beam Icon with Crimson Red Gradient -->
+    <path
+        android:fillColor="#FF3B30"
+        android:pathData="M24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,12.95 35.05,4 24,4 Z M24,7.5 C33.11,7.5 40.5,14.89 40.5,24 C40.5,33.11 33.11,40.5 24,40.5 C14.89,40.5 7.5,33.11 7.5,24 C7.5,14.89 14.89,7.5 24,7.5 Z" />
+    <path
+        android:fillColor="#FF453A"
+        android:pathData="M24,13 L35,24 L29,24 L29,35 L19,35 L19,24 L13,24 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,18 L19,23 L23,23 L23,30 L25,30 L25,23 L29,23 Z" />
+</vector>

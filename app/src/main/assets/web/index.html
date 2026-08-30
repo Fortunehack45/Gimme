@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirShare — Direct Local Transfer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-group">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="logo-title">AirShare</h1>
+                    <p class="logo-subtitle">Peer-to-Peer Local Network</p>
+                </div>
+            </div>
+            <div class="connection-badge">
+                <span class="status-dot"></span>
+                <span id="hostNameLabel">Connected to Phone</span>
+            </div>
+        </header>
+
+        <!-- Privacy Banner -->
+        <div class="security-banner">
+            <div class="security-icon">🛡️</div>
+            <div class="security-text">
+                <strong>Zero Cloud. Zero Trackers. 100% Local Transfer.</strong>
+                <span>All files are transferred directly across your local Wi-Fi.</span>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <main class="main-card">
+            <div class="tabs-nav">
+                <button class="tab-btn active" id="tabDownloadBtn" onclick="switchTab('download')">
+                    📥 Download from Phone
+                </button>
+                <button class="tab-btn" id="tabUploadBtn" onclick="switchTab('upload')">
+                    📤 Send to Phone
+                </button>
+            </div>
+
+            <!-- Tab 1: Download Section -->
+            <section id="downloadSection" class="tab-content active">
+                <div class="section-header">
+                    <h2>Available Shared Files</h2>
+                    <button class="btn-refresh" onclick="loadFiles()">🔄 Refresh</button>
+                </div>
+                <div id="fileListContainer" class="file-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">📁</div>
+                        <p>No files shared yet in this session</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 2: Upload Section -->
+            <section id="uploadSection" class="tab-content">
+                <div class="section-header">
+                    <h2>Send Files to Phone</h2>
+                </div>
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-icon">☁️</div>
+                    <h3>Drag &amp; drop files here</h3>
+                    <p>or click to browse from your computer</p>
+                    <input type="file" id="fileInput" multiple style="display: none;">
+                    <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Select Files
+                    </button>
+                </div>
+                <div id="uploadProgressContainer" class="upload-progress-card" style="display: none;">
+                    <div class="upload-info">
+                        <span id="uploadFileName">Uploading file...</span>
+                        <span id="uploadPercentage">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="uploadBarFill"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>AirShare v1.0 • High-Speed Local Wi-Fi Transfer • AES-256 Protected</p>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
