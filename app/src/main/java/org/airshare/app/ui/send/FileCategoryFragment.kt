@@ -1,5 +1,6 @@
 package org.airshare.app.ui.send
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,11 +15,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.checkbox.MaterialCheckBox
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.airshare.app.R
 import org.airshare.app.data.model.MediaCategory
 import org.airshare.app.data.model.TransferFile
 import org.airshare.app.databinding.FragmentFileCategoryBinding
+import org.airshare.app.ui.theme.ThemeManager
 
 class FileCategoryFragment : Fragment() {
 
@@ -59,12 +62,22 @@ class FileCategoryFragment : Fragment() {
             }
         }
 
+        // Combine category files with active search query for instant search filtering
         lifecycleScope.launch {
-            sendViewModel.categoryFilesMap.collectLatest { filesMap ->
-                val list = filesMap[category] ?: emptyList()
-                adapter.submitFiles(list)
-                binding.layoutCategoryEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-                binding.rvCategoryFiles.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE
+            combine(
+                sendViewModel.categoryFilesMap,
+                sendViewModel.searchQuery
+            ) { filesMap, query ->
+                val allCategoryFiles = filesMap[category] ?: emptyList()
+                if (query.isBlank()) {
+                    allCategoryFiles
+                } else {
+                    allCategoryFiles.filter { it.name.contains(query, ignoreCase = true) || it.packageName?.contains(query, ignoreCase = true) == true }
+                }
+            }.collectLatest { filteredList ->
+                adapter.submitFiles(filteredList)
+                binding.layoutCategoryEmpty.visibility = if (filteredList.isEmpty()) View.VISIBLE else View.GONE
+                binding.rvCategoryFiles.visibility = if (filteredList.isEmpty()) View.GONE else View.VISIBLE
             }
         }
 
@@ -123,19 +136,39 @@ class FileCategoryFragment : Fragment() {
 
         override fun onBindViewHolder(holder: FileViewHolder, position: Int) {
             val file = files[position]
+            val context = holder.itemView.context
+            val activeColor = ThemeManager.getActiveColorInt(context)
+
             holder.name.text = file.name
             holder.size.text = file.formattedSize
             holder.checkbox.isChecked = selectedIds.contains(file.id)
+            holder.checkbox.buttonTintList = ColorStateList.valueOf(activeColor)
 
-            if (file.category == MediaCategory.PHOTOS || file.category == MediaCategory.VIDEOS) {
-                Glide.with(holder.itemView)
+            if (file.category == MediaCategory.APPS) {
+                // High-resolution real App Icon
+                if (file.packageName != null) {
+                    try {
+                        val appIcon = context.packageManager.getApplicationIcon(file.packageName)
+                        holder.thumbnail.setImageDrawable(appIcon)
+                        holder.thumbnail.setPadding(0, 0, 0, 0)
+                    } catch (e: Exception) {
+                        holder.thumbnail.setImageResource(R.drawable.ic_category_apk)
+                        holder.thumbnail.setPadding(8, 8, 8, 8)
+                    }
+                } else {
+                    holder.thumbnail.setImageResource(R.drawable.ic_category_apk)
+                    holder.thumbnail.setPadding(8, 8, 8, 8)
+                }
+            } else if (file.category == MediaCategory.PHOTOS || file.category == MediaCategory.VIDEOS) {
+                holder.thumbnail.setPadding(0, 0, 0, 0)
+                Glide.with(context)
                     .load(file.localFilePath ?: file.uriString)
                     .centerCrop()
                     .placeholder(R.drawable.ic_category_photo)
                     .into(holder.thumbnail)
             } else {
+                holder.thumbnail.setPadding(8, 8, 8, 8)
                 val iconRes = when (file.category) {
-                    MediaCategory.APPS -> R.drawable.ic_category_apk
                     MediaCategory.MUSIC -> R.drawable.ic_category_music
                     MediaCategory.DOCS -> R.drawable.ic_category_doc
                     else -> R.drawable.ic_category_file
@@ -143,9 +176,7 @@ class FileCategoryFragment : Fragment() {
                 holder.thumbnail.setImageResource(iconRes)
             }
 
-            holder.itemView.setOnClickListener {
-                onItemToggled(file)
-            }
+            holder.itemView.setOnClickListener { onItemToggled(file) }
         }
 
         override fun getItemCount(): Int = files.size

@@ -1,6 +1,8 @@
 package org.airshare.app.ui.transfer
 
+import android.content.Intent
 import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +11,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -65,7 +68,9 @@ class TransferProgressActivity : AppCompatActivity() {
             filesList.addAll(passedFiles)
         }
 
-        filesAdapter = TransferFilesProgressAdapter(filesList)
+        filesAdapter = TransferFilesProgressAdapter(filesList) { file ->
+            handleFileClick(file)
+        }
         binding.rvTransferFiles.layoutManager = LinearLayoutManager(this)
         binding.rvTransferFiles.adapter = filesAdapter
 
@@ -86,6 +91,40 @@ class TransferProgressActivity : AppCompatActivity() {
             ThemeManager.activePresetFlow.collectLatest {
                 applyDynamicTransferTheme()
             }
+        }
+    }
+
+    private fun handleFileClick(file: TransferFile) {
+        val path = file.localFilePath
+        if (path == null) {
+            Toast.makeText(this, "File is still transferring...", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val diskFile = File(path)
+        if (!diskFile.exists()) {
+            Toast.makeText(this, "File not yet on disk", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", diskFile)
+            if (file.category == MediaCategory.APPS || file.name.endsWith(".apk", ignoreCase = true)) {
+                val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/vnd.android.package-archive")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(installIntent)
+            } else {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, file.mimeType)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, "Open file with"))
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open file: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -265,7 +304,8 @@ class TransferProgressActivity : AppCompatActivity() {
     }
 
     class TransferFilesProgressAdapter(
-        private val files: List<TransferFile>
+        private val files: List<TransferFile>,
+        private val onItemClick: (TransferFile) -> Unit
     ) : RecyclerView.Adapter<TransferFilesProgressAdapter.ViewHolder>() {
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -284,12 +324,24 @@ class TransferProgressActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val file = files[position]
-            val activeColor = ThemeManager.getActiveColorInt(holder.itemView.context)
+            val context = holder.itemView.context
+            val activeColor = ThemeManager.getActiveColorInt(context)
 
             holder.name.text = file.name
             val percent = file.progressPercent
-            holder.badge.text = "$percent%"
+
+            if (file.status == TransferStatus.COMPLETED) {
+                if (file.category == MediaCategory.APPS || file.name.endsWith(".apk", ignoreCase = true)) {
+                    holder.badge.text = "INSTALL 📱"
+                } else {
+                    holder.badge.text = "READY ✓"
+                }
+            } else {
+                holder.badge.text = "$percent%"
+            }
+
             holder.badge.setTextColor(activeColor)
+            ThemeManager.applySubtlePillBackground(holder.badge)
             holder.progressIndicator.progress = percent
             holder.progressIndicator.setIndicatorColor(activeColor)
 
@@ -298,15 +350,26 @@ class TransferProgressActivity : AppCompatActivity() {
             holder.transferredBytes.text = "$transferredStr / $totalStr"
             holder.chunkInfo.text = "Status: ${file.status.name}"
 
-            val iconRes = when (file.category) {
-                MediaCategory.PHOTOS -> R.drawable.ic_category_photo
-                MediaCategory.VIDEOS -> R.drawable.ic_category_video
-                MediaCategory.MUSIC -> R.drawable.ic_category_music
-                MediaCategory.APPS -> R.drawable.ic_category_apk
-                MediaCategory.DOCS -> R.drawable.ic_category_doc
-                else -> R.drawable.ic_category_file
+            if (file.category == MediaCategory.APPS && file.packageName != null) {
+                try {
+                    val appIcon = context.packageManager.getApplicationIcon(file.packageName)
+                    holder.icon.setImageDrawable(appIcon)
+                } catch (e: Exception) {
+                    holder.icon.setImageResource(R.drawable.ic_category_apk)
+                }
+            } else {
+                val iconRes = when (file.category) {
+                    MediaCategory.PHOTOS -> R.drawable.ic_category_photo
+                    MediaCategory.VIDEOS -> R.drawable.ic_category_video
+                    MediaCategory.MUSIC -> R.drawable.ic_category_music
+                    MediaCategory.APPS -> R.drawable.ic_category_apk
+                    MediaCategory.DOCS -> R.drawable.ic_category_doc
+                    else -> R.drawable.ic_category_file
+                }
+                holder.icon.setImageResource(iconRes)
             }
-            holder.icon.setImageResource(iconRes)
+
+            holder.itemView.setOnClickListener { onItemClick(file) }
         }
 
         override fun getItemCount(): Int = files.size

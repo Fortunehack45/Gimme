@@ -2,6 +2,7 @@ package org.airshare.app.ui.history
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -46,7 +47,7 @@ class HistoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = HistoryAdapter(
-            onItemClicked = { entity -> openFile(entity) },
+            onItemClicked = { entity -> handleFileAction(entity) },
             onResendClicked = { entity -> resendFile(entity) }
         )
 
@@ -104,7 +105,7 @@ class HistoryFragment : Fragment() {
         binding.rvHistory.visibility = if (filtered.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    private fun openFile(entity: TransferEntity) {
+    private fun handleFileAction(entity: TransferEntity) {
         val path = entity.localFilePath
         if (path == null) {
             Toast.makeText(requireContext(), "File path not available", Toast.LENGTH_SHORT).show()
@@ -123,13 +124,24 @@ class HistoryFragment : Fragment() {
                 "${requireContext().packageName}.fileprovider",
                 file
             )
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, entity.mimeType)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+            // If APK, launch package installer
+            if (entity.fileName.endsWith(".apk", ignoreCase = true) || entity.category == MediaCategory.APPS) {
+                val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/vnd.android.package-archive")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(installIntent)
+            } else {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, entity.mimeType)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, "Open file with"))
             }
-            startActivity(Intent.createChooser(intent, "Open file with"))
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Cannot open file: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Cannot open: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -175,7 +187,8 @@ class HistoryFragment : Fragment() {
 
         override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
             val item = items[position]
-            val activeColor = ThemeManager.getActiveColorInt(holder.itemView.context)
+            val context = holder.itemView.context
+            val activeColor = ThemeManager.getActiveColorInt(context)
 
             holder.fileName.text = item.fileName
             val dateStr = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(Date(item.timestamp))
@@ -183,14 +196,18 @@ class HistoryFragment : Fragment() {
             holder.meta.text = "$sizeStr • ${item.peerName} • $dateStr"
 
             if (item.isIncoming) {
-                holder.badge.text = "RECEIVED"
+                if (item.fileName.endsWith(".apk", ignoreCase = true) || item.category == MediaCategory.APPS) {
+                    holder.badge.text = "INSTALL 📱"
+                } else {
+                    holder.badge.text = "RECEIVED"
+                }
                 holder.badge.setTextColor(activeColor)
                 ThemeManager.applySubtlePillBackground(holder.badge)
                 holder.btnResend.visibility = View.VISIBLE
                 holder.btnResend.setColorFilter(activeColor)
             } else {
                 holder.badge.text = "SENT"
-                holder.badge.setTextColor(holder.itemView.context.getColor(R.color.text_dark_secondary))
+                holder.badge.setTextColor(context.getColor(R.color.text_dark_secondary))
                 holder.btnResend.visibility = View.GONE
             }
 

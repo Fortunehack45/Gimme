@@ -1,7 +1,12 @@
 package org.airshare.app.ui.send
 
+import android.app.Activity
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -15,17 +20,19 @@ import org.airshare.app.data.model.MediaCategory
 import org.airshare.app.data.model.TransferFile
 import org.airshare.app.databinding.ActivitySendBinding
 import org.airshare.app.ui.theme.ThemeManager
+import org.airshare.app.ui.transfer.TransferProgressActivity
 
 class SendActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySendBinding
     private val viewModel: SendViewModel by viewModels()
+    private var isPickerMode = false
 
     private val categories = listOf(
+        MediaCategory.APPS,
         MediaCategory.PHOTOS,
         MediaCategory.VIDEOS,
         MediaCategory.MUSIC,
-        MediaCategory.APPS,
         MediaCategory.DOCS
     )
 
@@ -33,6 +40,8 @@ class SendActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySendBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        isPickerMode = intent.getBooleanExtra(EXTRA_IS_PICKER_MODE, false) || callingActivity != null
 
         binding.btnBack.setOnClickListener {
             finish()
@@ -43,14 +52,30 @@ class SendActivity : AppCompatActivity() {
 
         TabLayoutMediator(binding.tabLayoutCategories, binding.viewPagerCategories) { tab, position ->
             tab.text = when (categories[position]) {
-                MediaCategory.PHOTOS -> "Photos"
-                MediaCategory.VIDEOS -> "Videos"
-                MediaCategory.MUSIC -> "Music"
-                MediaCategory.APPS -> "Apps"
-                MediaCategory.DOCS -> "Docs"
-                else -> "Files"
+                MediaCategory.APPS -> "📱 Apps"
+                MediaCategory.PHOTOS -> "🖼️ Photos"
+                MediaCategory.VIDEOS -> "🎥 Videos"
+                MediaCategory.MUSIC -> "🎵 Music"
+                MediaCategory.DOCS -> "📄 Docs"
+                else -> "📁 Files"
             }
         }.attach()
+
+        // Real-time search query listener
+        binding.etSearchQuery.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val query = s?.toString() ?: ""
+                viewModel.setSearchQuery(query)
+                binding.btnClearSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        binding.btnClearSearch.setOnClickListener {
+            binding.etSearchQuery.setText("")
+            viewModel.setSearchQuery("")
+        }
 
         binding.btnSelectAll.setOnClickListener {
             val currentPos = binding.viewPagerCategories.currentItem
@@ -63,15 +88,30 @@ class SendActivity : AppCompatActivity() {
                 val count = selectedSet.size
                 val totalBytes = selectedSet.sumOf { it.size }
 
-                binding.tvSelectionCount.text = "$count file${if (count == 1) "" else "s"} selected"
+                binding.tvSelectionCount.text = "$count item${if (count == 1) "" else "s"} selected"
                 binding.tvSelectionSize.text = "${TransferFile.formatByteSize(totalBytes)} total"
                 binding.btnProceedSend.isEnabled = count > 0
+
+                if (isPickerMode) {
+                    binding.btnProceedSend.text = "Confirm ($count)"
+                } else {
+                    binding.btnProceedSend.text = "Send"
+                }
             }
         }
 
         binding.btnProceedSend.setOnClickListener {
-            val dialog = DeviceDiscoveryDialogFragment()
-            dialog.show(supportFragmentManager, "DeviceDiscoveryDialog")
+            val selected = viewModel.selectedFiles.value.toList()
+            if (isPickerMode) {
+                val resultIntent = Intent().apply {
+                    putExtra(TransferProgressActivity.EXTRA_FILES_LIST, ArrayList(selected))
+                }
+                setResult(Activity.RESULT_OK, resultIntent)
+                finish()
+            } else {
+                val dialog = DeviceDiscoveryDialogFragment()
+                dialog.show(supportFragmentManager, "DeviceDiscoveryDialog")
+            }
         }
 
         lifecycleScope.launch {
@@ -90,6 +130,10 @@ class SendActivity : AppCompatActivity() {
             activeColor
         )
         binding.btnProceedSend.backgroundTintList = ColorStateList.valueOf(activeColor)
+    }
+
+    companion object {
+        const val EXTRA_IS_PICKER_MODE = "extra_is_picker_mode"
     }
 
     class CategoryPagerAdapter(

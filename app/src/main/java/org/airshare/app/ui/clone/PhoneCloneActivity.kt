@@ -100,14 +100,12 @@ class PhoneCloneActivity : AppCompatActivity() {
 
     private fun startOldPhoneSenderFlow() {
         lifecycleScope.launch {
-            Toast.makeText(this@PhoneCloneActivity, "Preparing clone package...", Toast.LENGTH_SHORT).show()
             val filesToClone = mutableListOf<TransferFile>()
-
             val selectedTypes = categories.filter { it.isSelected }.map { it.type }
             if (selectedTypes.contains(CloneCategoryType.PHOTOS)) filesToClone.addAll(fileRepository.getPhotos())
             if (selectedTypes.contains(CloneCategoryType.VIDEOS)) filesToClone.addAll(fileRepository.getVideos())
             if (selectedTypes.contains(CloneCategoryType.MUSIC)) filesToClone.addAll(fileRepository.getMusic())
-            if (selectedTypes.contains(CloneCategoryType.APPS)) filesToClone.addAll(fileRepository.getApps())
+            if (selectedTypes.contains(CloneCategoryType.APPS)) filesToClone.addAll(fileRepository.getInstalledApps())
             if (selectedTypes.contains(CloneCategoryType.DOCUMENTS)) filesToClone.addAll(fileRepository.getDocuments())
 
             if (filesToClone.isEmpty()) {
@@ -115,8 +113,12 @@ class PhoneCloneActivity : AppCompatActivity() {
                 return@launch
             }
 
-            val dialog = DeviceDiscoveryDialogFragment()
-            dialog.show(supportFragmentManager, "DeviceDiscoveryDialog")
+            val intent = Intent(this@PhoneCloneActivity, TransferProgressActivity::class.java).apply {
+                putExtra(TransferProgressActivity.EXTRA_IS_SENDER, true)
+                putExtra(TransferProgressActivity.EXTRA_FILES_LIST, ArrayList(filesToClone))
+            }
+            startActivity(intent)
+            finish()
         }
     }
 

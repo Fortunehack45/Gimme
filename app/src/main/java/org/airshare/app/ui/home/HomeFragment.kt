@@ -3,6 +3,8 @@ package org.airshare.app.ui.home
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Environment
+import android.os.StatFs
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.airshare.app.AirShareApplication
+import org.airshare.app.data.model.TransferFile
 import org.airshare.app.databinding.FragmentHomeBinding
 import org.airshare.app.ui.clone.PhoneCloneActivity
 import org.airshare.app.ui.group.GroupActivity
@@ -18,6 +21,7 @@ import org.airshare.app.ui.receive.ReceiveActivity
 import org.airshare.app.ui.send.SendActivity
 import org.airshare.app.ui.theme.ThemeManager
 import org.airshare.app.ui.webconnect.WebConnectActivity
+import java.util.Calendar
 
 class HomeFragment : Fragment() {
 
@@ -34,6 +38,8 @@ class HomeFragment : Fragment() {
 
         val deviceName = AirShareApplication.instance.settingsRepository.deviceName
         binding.tvDeviceNameBadge.text = "$deviceName • Ready"
+        updateGreeting()
+        updateStorageDashboard()
 
         binding.cardSend.setOnClickListener {
             startActivity(Intent(requireContext(), SendActivity::class.java))
@@ -55,7 +61,6 @@ class HomeFragment : Fragment() {
             startActivity(Intent(requireContext(), PhoneCloneActivity::class.java))
         }
 
-        // Apply dynamic theme accent updates
         viewLifecycleOwner.lifecycleScope.launch {
             ThemeManager.activePresetFlow.collectLatest {
                 applyDynamicTheme()
@@ -63,22 +68,49 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun updateGreeting() {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val greeting = when (hour) {
+            in 5..11 -> "Good Morning"
+            in 12..16 -> "Good Afternoon"
+            in 17..21 -> "Good Evening"
+            else -> "AirShare Hub"
+        }
+        binding.tvAppGreeting.text = greeting
+    }
+
+    private fun updateStorageDashboard() {
+        try {
+            val stat = StatFs(Environment.getDataDirectory().path)
+            val bytesAvailable = stat.availableBlocksLong * stat.blockSizeLong
+            val bytesTotal = stat.blockCountLong * stat.blockSizeLong
+            val bytesUsed = bytesTotal - bytesAvailable
+            val usedPercent = if (bytesTotal > 0) ((bytesUsed.toDouble() / bytesTotal) * 100).toInt() else 0
+
+            val freeStr = TransferFile.formatByteSize(bytesAvailable)
+            val totalStr = TransferFile.formatByteSize(bytesTotal)
+
+            binding.tvStorageUsageLabel.text = "$freeStr free of $totalStr"
+            binding.indicatorDeviceStorage.progress = usedPercent
+        } catch (e: Exception) {
+            binding.tvStorageUsageLabel.text = "Available"
+        }
+    }
+
     private fun applyDynamicTheme() {
         if (_binding == null) return
         val activeColor = ThemeManager.getActiveColorInt(requireContext())
 
-        // Update send tile gradient with dynamic color
         val density = resources.displayMetrics.density
         val radiusPx = 26f * density
         val sendGradient = GradientDrawable(
             GradientDrawable.Orientation.TL_BR,
-            intArrayOf(activeColor, adjustColorBrightness(activeColor, 0.8f))
+            intArrayOf(activeColor, adjustColorBrightness(activeColor, 0.75f))
         ).apply {
             cornerRadius = radiusPx
         }
         binding.layoutSendTile.background = sendGradient
 
-        // Update badges
         ThemeManager.applySubtlePillBackground(binding.tvSecurityChip)
         ThemeManager.applySubtlePillBackground(binding.privacyBadge)
         ThemeManager.applySubtlePillBackground(binding.frameGroupIcon)
@@ -87,6 +119,8 @@ class HomeFragment : Fragment() {
 
         binding.tvSecurityChip.setTextColor(activeColor)
         binding.tvPrivacyText.setTextColor(activeColor)
+        binding.tvStorageUsageLabel.setTextColor(activeColor)
+        binding.indicatorDeviceStorage.setIndicatorColor(activeColor)
         binding.ivGroupIcon.setColorFilter(activeColor)
     }
 
@@ -103,6 +137,8 @@ class HomeFragment : Fragment() {
         if (_binding != null) {
             val deviceName = AirShareApplication.instance.settingsRepository.deviceName
             binding.tvDeviceNameBadge.text = "$deviceName • Ready"
+            updateGreeting()
+            updateStorageDashboard()
             applyDynamicTheme()
         }
     }

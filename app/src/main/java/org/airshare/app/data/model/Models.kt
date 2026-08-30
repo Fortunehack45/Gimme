@@ -48,6 +48,7 @@ data class TransferFile(
     val category: MediaCategory,
     val uriString: String? = null,
     val localFilePath: String? = null,
+    val packageName: String? = null,
     var checksumSha256: String = "",
     var chunkCount: Int = 1,
     var transferredBytes: Long = 0L,

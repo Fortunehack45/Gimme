@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.airshare.app.data.model.DevicePeer
 import org.airshare.app.data.model.MediaCategory
 import org.airshare.app.data.model.TransferFile
 import org.airshare.app.data.repository.FileRepository
@@ -31,6 +30,13 @@ class SendViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _isLoadingCategory = MutableStateFlow<Map<MediaCategory, Boolean>>(emptyMap())
     val isLoadingCategory: StateFlow<Map<MediaCategory, Boolean>> = _isLoadingCategory.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query.trim()
+    }
 
     fun toggleFileSelection(file: TransferFile) {
         val current = _selectedFiles.value.toMutableSet()
@@ -60,14 +66,7 @@ class SendViewModel(application: Application) : AndroidViewModel(application) {
         _isLoadingCategory.value = _isLoadingCategory.value.toMutableMap().apply { put(category, true) }
 
         viewModelScope.launch {
-            val list = when (category) {
-                MediaCategory.APPS -> fileRepository.getApps()
-                MediaCategory.PHOTOS -> fileRepository.getPhotos()
-                MediaCategory.VIDEOS -> fileRepository.getVideos()
-                MediaCategory.MUSIC -> fileRepository.getMusic()
-                MediaCategory.DOCS -> fileRepository.getDocuments()
-                MediaCategory.FILES -> fileRepository.getDocuments()
-            }
+            val list = fileRepository.getFilesForCategory(category)
             _categoryFilesMap.value = _categoryFilesMap.value.toMutableMap().apply { put(category, list) }
             _isLoadingCategory.value = _isLoadingCategory.value.toMutableMap().apply { put(category, false) }
         }

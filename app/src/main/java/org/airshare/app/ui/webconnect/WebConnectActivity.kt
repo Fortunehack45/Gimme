@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +20,7 @@ import org.airshare.app.engine.network.hotspot.HotspotManager
 import org.airshare.app.engine.network.server.AirShareServer
 import org.airshare.app.ui.qr.QrCodeUtils
 import org.airshare.app.ui.send.SendActivity
+import org.airshare.app.ui.theme.ThemeManager
 import org.airshare.app.ui.transfer.TransferProgressActivity
 
 class WebConnectActivity : AppCompatActivity() {
@@ -97,7 +99,9 @@ class WebConnectActivity : AppCompatActivity() {
         }
 
         binding.btnSelectFilesForWeb.setOnClickListener {
-            val intent = Intent(this, SendActivity::class.java)
+            val intent = Intent(this, SendActivity::class.java).apply {
+                putExtra(SendActivity.EXTRA_IS_PICKER_MODE, true)
+            }
             selectFilesLauncher.launch(intent)
         }
 
@@ -106,6 +110,18 @@ class WebConnectActivity : AppCompatActivity() {
                 binding.tvWebClientCount.text = "Connected browsers: ${peers.size}"
             }
         }
+
+        lifecycleScope.launch {
+            ThemeManager.activePresetFlow.collectLatest {
+                applyDynamicWebTheme()
+            }
+        }
+    }
+
+    private fun applyDynamicWebTheme() {
+        val activeColor = ThemeManager.getActiveColorInt(this)
+        binding.btnSelectFilesForWeb.backgroundTintList = ColorStateList.valueOf(activeColor)
+        binding.tvWebUrl.setTextColor(activeColor)
     }
 
     override fun onDestroy() {

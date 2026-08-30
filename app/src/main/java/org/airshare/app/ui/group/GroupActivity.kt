@@ -84,7 +84,9 @@ class GroupActivity : AppCompatActivity() {
         startGroupHost(deviceName)
 
         binding.btnGroupSelectFiles.setOnClickListener {
-            val intent = Intent(this, SendActivity::class.java)
+            val intent = Intent(this, SendActivity::class.java).apply {
+                putExtra(SendActivity.EXTRA_IS_PICKER_MODE, true)
+            }
             selectFilesLauncher.launch(intent)
         }
 

@@ -1,74 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/colorSurface"
-    android:orientation="vertical"
     android:padding="24dp">
 
+    <!-- Top Handle Bar -->
     <View
+        android:id="@+id/handleBar"
         android:layout_width="40dp"
         android:layout_height="4dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/bg_pill_badge" />
+        android:background="@drawable/bg_pill_badge"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tvDiscoveryTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:text="Nearby Receivers"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textSize="22sp"
+        android:letterSpacing="-0.02"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/btnScanQrAction"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/handleBar" />
+
+    <Button
+        android:id="@+id/btnScanQrAction"
+        style="@style/Button.AirShare.Secondary"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:paddingHorizontal="14dp"
+        android:text="📷 Scan QR"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/tvDiscoveryTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvDiscoveryTitle" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tvDiscoverySubtitle"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Searching for devices on the same Wi-Fi / WiFi Direct..."
+        android:layout_marginTop="2dp"
+        android:text="Scanning over Wi-Fi Direct &amp; Local Network..."
         android:textColor="@color/text_dark_secondary"
-        android:textSize="13sp" />
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDiscoveryTitle" />
 
-    <ProgressBar
-        android:id="@+id/progressBarDiscovery"
-        style="?android:attr/progressBarStyleHorizontal"
+    <!-- Radar Scanning Pulse Animation Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardRadarContainer"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginTop="16dp"
-        android:indeterminate="true"
-        android:indeterminateTint="@color/brand_primary" />
+        android:layout_height="120dp"
+        android:layout_marginTop="18dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="?attr/colorOutline"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:layout_constraintTop_toBottomOf="@id/tvDiscoverySubtitle">
 
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ProgressBar
+                android:id="@+id/pbDiscoveryRadar"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/brand_primary" />
+
+            <TextView
+                android:id="@+id/tvRadarPrompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:text="Make sure the receiving device has AirShare open on 'Receive'"
+                android:textColor="@color/text_dark_secondary"
+                android:textSize="11sp" />
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Discovered Devices List -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvDiscoveredPeers"
-        android:layout_width="match_parent"
-        android:layout_height="220dp"
-        android:layout_marginTop="12dp" />
+        android:id="@+id/rvDiscoveredDevices"
+        android:layout_width="0dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="14dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardRadarContainer" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <!-- Direct Manual IP / PIN Option -->
+    <Button
+        android:id="@+id/btnCancelDiscovery"
+        style="@style/Button.AirShare.Secondary"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
         android:layout_marginTop="16dp"
-        android:orientation="horizontal">
+        android:text="Cancel"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rvDiscoveredDevices" />
 
-        <Button
-            android:id="@+id/btnScanQrToPair"
-            style="@style/Button.AirShare.Secondary"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="📷 Scan QR"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/btnCancelDiscovery"
-            style="@style/Button.AirShare.Secondary"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginStart="10dp"
-            android:text="Cancel"
-            android:textSize="14sp" />
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
